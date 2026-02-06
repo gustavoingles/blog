@@ -23,6 +23,10 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Post'
+        '400':
+          description: Failed to marshal response body into JSON format
+        '500':
+          description: Failed to fetch blog posts or write response
 
     post:
       summary: Publish a new post
@@ -37,6 +41,10 @@ paths:
       responses:
         '202':
           description: Post accepted and published successfully
+        '400':
+          description: Failed to read or unmarshal request body
+        '500':
+          description: Failed to publish post
 
   /blog/posts/{postID}:
     get:
@@ -58,6 +66,10 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Post'
+        '400':
+          description: Invalid postID parameter or failed to marshal response
+        '500':
+          description: Failed to fetch post or write response
 
     put:
       summary: Update post by ID
@@ -80,6 +92,10 @@ paths:
       responses:
         '200':
           description: Post updated successfully
+        '400':
+          description: Invalid postID parameter
+        '500':
+          description: Failed to update target post
 
     delete:
       summary: Delete post by ID
@@ -96,6 +112,10 @@ paths:
       responses:
         '200':
           description: Post deleted successfully
+        '400':
+          description: Invalid postID parameter
+        '409':
+          description: Failed to delete post (conflict)
 
 components:
   schemas:

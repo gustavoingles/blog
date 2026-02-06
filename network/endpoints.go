@@ -12,14 +12,19 @@ import (
 // management activities, such as posting, deleting, seeing articles, etc. Nothing hard to understand or write.
 // The API will only serve "/blog/..."-like endpoints, as you will see.
 
-// func setupEverything() {
-// 	mux := http.NewServeMux()
-// 	mux.HandleFunc("GET /blog/posts")
-// 	mux.HandleFunc("POST /blog/posts")
-// 	mux.HandleFunc("GET /blog/posts/{postID}")
-// 	mux.HandleFunc("UPDATE /blog/posts/{postID}")
-// 	mux.HandleFunc("DELETE /blog/posts/{postID}")
-// }
+func NewHTTPServer(postRepo blog.PostRepository) *http.ServeMux {
+	mux := http.NewServeMux()
+
+	postHandler := NewPostsHandler(postRepo)
+
+	mux.HandleFunc("GET /blog/posts", postHandler.GetAllPosts)
+	mux.HandleFunc("POST /blog/posts", postHandler.PublishPost)
+	mux.HandleFunc("GET /blog/posts/{postID}", postHandler.GetPostById)
+	mux.HandleFunc("UPDATE /blog/posts/{postID}", postHandler.UpdatePostById)
+	mux.HandleFunc("DELETE /blog/posts/{postID}", postHandler.DeletePostById)
+	
+	return mux
+}
 
 type PostsHandler struct {
 	PostRepo blog.PostRepository

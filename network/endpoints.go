@@ -3,6 +3,7 @@ package network
 import (
 	"blogging/blog"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -22,7 +23,7 @@ func NewHTTPServer(postRepo blog.PostRepository) *http.ServeMux {
 	mux.HandleFunc("GET /blog/posts/{postID}", postHandler.GetPostById)
 	mux.HandleFunc("UPDATE /blog/posts/{postID}", postHandler.UpdatePostById)
 	mux.HandleFunc("DELETE /blog/posts/{postID}", postHandler.DeletePostById)
-	
+
 	return mux
 }
 
@@ -41,41 +42,50 @@ func (h PostsHandler) GetAllPosts(w http.ResponseWriter, r *http.Request) {
 
 	posts, err := h.PostRepo.GetAllPosts(ctx)
 	if err != nil {
-
+		http.Error(w, fmt.Sprintf("failed to fetch blog posts: %v", err), http.StatusInternalServerError)
+		return
 	}
 
 	respBody, err := json.Marshal(posts)
 	if err != nil {
-
+		http.Error(w, fmt.Sprintf("failed to marshal response body into JSON format: %v", err), http.StatusBadRequest)
+		return
 	}
 
 	_, err = w.Write(respBody)
 	if err != nil {
-
+		http.Error(w, fmt.Sprintf("failed to write response: %v", err), http.StatusInternalServerError)
+		return
 	}
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h PostsHandler) GetPostById(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	pID, err := strconv.ParseInt(r.PathValue("postID"), 10, 64)
 	if err != nil {
-
+		http.Error(w, fmt.Sprintf("failed to parse 'postID' string to int64: %v", err), http.StatusBadRequest)
+		return
 	}
 
 	post, err := h.PostRepo.GetPostById(ctx, pID)
 	if err != nil {
-
+		http.Error(w, fmt.Sprintf("failed to fetch post: %v", err), http.StatusInternalServerError)
+		return
 	}
 
 	respBody, err := json.Marshal(*post)
 	if err != nil {
-
+		http.Error(w, fmt.Sprintf("failed to marshal response body into JSON format: %v", err), http.StatusBadRequest)
+		return
 	}
 
 	_, err = w.Write(respBody)
 	if err != nil {
-
+		http.Error(w, fmt.Sprintf("failed to write response: %v", err), http.StatusInternalServerError)
+		return
 	}
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h PostsHandler) DeletePostById(w http.ResponseWriter, r *http.Request) {
@@ -83,12 +93,14 @@ func (h PostsHandler) DeletePostById(w http.ResponseWriter, r *http.Request) {
 
 	pID, err := strconv.ParseInt(r.PathValue("postID"), 10, 64)
 	if err != nil {
-
+		http.Error(w, fmt.Sprintf("failed to parse 'postID' string to int64: %v", err), http.StatusBadRequest)
+		return
 	}
 
 	err = h.PostRepo.DeletePostById(ctx, pID)
 	if err != nil {
-
+		http.Error(w, fmt.Sprintf("failed to delete post: %v", err), http.StatusConflict)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -99,14 +111,16 @@ func (h PostsHandler) UpdatePostById(w http.ResponseWriter, r *http.Request) {
 
 	pID, err := strconv.ParseInt(r.PathValue("postID"), 10, 64)
 	if err != nil {
-
+		http.Error(w, fmt.Sprintf("failed to parse 'postID' string to int64: %v", err), http.StatusBadRequest)
+		return
 	}
 
 	err = h.PostRepo.UpdatePostById(ctx, pID, func(p *blog.Post) {
 
 	})
 	if err != nil {
-
+		http.Error(w, fmt.Sprintf("failed to update target post: %v", err), http.StatusInternalServerError)
+		return
 	}
 
 	w.WriteHeader(http.StatusOK)
@@ -123,13 +137,15 @@ func (h PostsHandler) PublishPost(w http.ResponseWriter, r *http.Request) {
 
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		
+		http.Error(w, fmt.Sprintf("failed to read request body: %v", err), http.StatusBadRequest)
+		return
 	}
 
 	var body PublishPostRequest
 	err = json.Unmarshal(reqBody, &body)
 	if err != nil {
-		
+		http.Error(w, fmt.Sprintf("failed to unmarshal request body from JSON format: %v", err), http.StatusBadRequest)
+		return
 	}
 
 	ctx := r.Context()
@@ -144,7 +160,8 @@ func (h PostsHandler) PublishPost(w http.ResponseWriter, r *http.Request) {
 
 	err = h.PostRepo.PublishPost(ctx, p)
 	if err != nil {
-		
+		http.Error(w, fmt.Sprintf("failed to publish post: %v", err), http.StatusInternalServerError)
+		return
 	}
 
 	w.WriteHeader(http.StatusAccepted)

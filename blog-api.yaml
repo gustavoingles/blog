@@ -1,0 +1,146 @@
+openapi: 3.0.3
+info:
+  title: Blog API
+  description: A simple blog management API for posting, deleting, and viewing articles.
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+paths:
+  /blog/posts:
+    get:
+      summary: Get all posts
+      description: Retrieves a list of all blog posts.
+      operationId: getAllPosts
+      responses:
+        '200':
+          description: A list of blog posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Post'
+
+    post:
+      summary: Publish a new post
+      description: Creates and publishes a new blog post.
+      operationId: publishPost
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublishPostRequest'
+      responses:
+        '202':
+          description: Post accepted and published successfully
+
+  /blog/posts/{postID}:
+    get:
+      summary: Get post by ID
+      description: Retrieves a specific blog post by its ID.
+      operationId: getPostById
+      parameters:
+        - name: postID
+          in: path
+          required: true
+          description: The unique identifier of the post
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: The requested blog post
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Post'
+
+    put:
+      summary: Update post by ID
+      description: Updates an existing blog post by its ID.
+      operationId: updatePostById
+      parameters:
+        - name: postID
+          in: path
+          required: true
+          description: The unique identifier of the post
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublishPostRequest'
+      responses:
+        '200':
+          description: Post updated successfully
+
+    delete:
+      summary: Delete post by ID
+      description: Deletes a blog post by its ID.
+      operationId: deletePostById
+      parameters:
+        - name: postID
+          in: path
+          required: true
+          description: The unique identifier of the post
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Post deleted successfully
+
+components:
+  schemas:
+    Post:
+      type: object
+      properties:
+        title:
+          type: string
+          description: The title of the blog post
+        introduction:
+          type: string
+          description: The introduction section of the post
+        body:
+          type: string
+          description: The main content of the post
+        callToAction:
+          type: string
+          description: The call-to-action message
+        author:
+          type: string
+          description: The author of the post
+        createdAt:
+          type: string
+          format: date-time
+          description: The timestamp when the post was created
+
+    PublishPostRequest:
+      type: object
+      required:
+        - title
+        - author
+        - body
+      properties:
+        title:
+          type: string
+          description: The title of the blog post
+        author:
+          type: string
+          description: The author of the post
+        body:
+          type: string
+          description: The main content of the post
+        call-to-action:
+          type: string
+          description: The call-to-action message
+        introduction:
+          type: string
+          description: The introduction section of the post

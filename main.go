@@ -22,6 +22,8 @@ func main() {
 	db := database.NewInMemoryDatabase()
 	
 	mux := network.NewHTTPServer(db)
+
+	// TODO: implement Golang concurrent patterns to optimize resources usage
 	err = http.ListenAndServe(hsa, mux)
 	if err != nil {
 		
